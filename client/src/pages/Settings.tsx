@@ -1,5 +1,5 @@
 // src/pages/Settings.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { User, Bell, Pencil } from "lucide-react";
 import { useNotification } from "../context/NotificationContext";
@@ -90,13 +90,54 @@ const ToggleSwitch = ({
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("account");
   const { settings, updateSettings } = useNotification();
+  const [user, setUser] = useState({ firstName: '', lastName: '', email: '' });
+  const [email, setEmail] = useState('');
 
-  // ✅ Hard-coded values
-  const profileName = "Shreya SV";
-  const email = "shreyasrini15@gmail.com";
+  useEffect(() => {
+     const storedUser = localStorage.getItem('user');
+     if (storedUser) {
+       const parsedUser = JSON.parse(storedUser);
+       setUser(parsedUser);
+       setEmail(parsedUser.email);
+     }
+   }, []);
 
-  const handleSaveProfile = () => {
-    alert("Profile updated successfully!");
+  // ✅ values from local storage
+  const profileName = `${user.firstName} ${user.lastName}`;
+
+  const handleSaveProfile = async() => {
+    // Assumes your user object is in a state variable named 'user'
+    if (!user) return;
+
+    try{
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/auth/user', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ email: email })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || 'Failed to update profile');
+        return;
+      }
+
+      // IMPORTANT: Update user data in local storage and state
+      const updatedUser = { ...user, email: data.data.user.email };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser); // assuems you have a setUser function
+
+      alert('Profile updated successfully');
+    } catch(err) {
+      console.error('Save profile error:', err);
+      alert('An error occurred while saving your profile.');
+    }
+        
   };
 
   return (
@@ -156,7 +197,7 @@ export default function SettingsPage() {
                   type="email"
                   className="md:col-span-2"
                   value={email}
-                  disabled
+                  onChange={(e) => setEmail(e.target.value)} // This should be your state setter
                 />
               </div>
 

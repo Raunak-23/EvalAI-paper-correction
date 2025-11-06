@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   Home,
@@ -13,6 +13,7 @@ import {
 
 const Sidebar = () => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const menuItems = [
     { name: "Dashboard", to: "/dashboard", icon: <Home className="w-5 h-5 mr-3" /> },
@@ -70,7 +71,7 @@ const Sidebar = () => {
       {/* Logout */}
       <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
         <button
-          onClick={logout}
+          onClick={() => { logout(); navigate('/auth'); }}
           className="
             w-full flex items-center justify-center 
             bg-red-500 text-white py-2.5 rounded-xl 

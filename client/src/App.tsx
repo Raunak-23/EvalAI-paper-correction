@@ -9,7 +9,9 @@ import {
   useLocation,
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import {useState} from "react";
 
+import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import Grading from "./pages/Grading";
@@ -44,14 +46,17 @@ const AppLayout: React.FC = () => {
   );
 };
 
-
 /* ✅ Page transitions */
 const AnimatedRoutes: React.FC = () => {
   const location = useLocation();
+  const [isDark, setIsDark] = useState(false);
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        
+        {/* ✅ New Landing Page as default */}
+        <Route path="/" element={<Landing onGetStarted={() => {}} isDark={false} toggleDark={() => setIsDark(!isDark)} />} />
 
         {/* ✅ Public login page */}
         <Route path="/auth" element={<AuthPage />} />
@@ -76,8 +81,9 @@ const AnimatedRoutes: React.FC = () => {
           <Route path="/help" element={<Help />} />
         </Route>
 
-        {/* ✅ Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/auth" replace />} />
+        {/* ✅ Catch-all redirect
+        <Route path="*" element={<Navigate to="/auth" replace />} /> */}
+        
       </Routes>
     </AnimatePresence>
   );

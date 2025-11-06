@@ -6,6 +6,25 @@ const { body, validationResult } = require("express-validator");
 const cors = require("cors");
 require("dotenv").config();
 
+// middelware to verufy JWT
+const authMiddelware = (req, res, next) => {
+  const authHeader = req.header('Authorization');
+  if (!authHeader) {
+    return res.status(401).json({ success: false, message: 'Access denied. No token provided.' });
+  }
+  const token = authHeader.replace('Bearer ', '');
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Access denied. Malformed token.' });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (ex) {
+    res.status(400).json({ success: false, message: 'Invalid token.' });
+  }
+};
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -85,6 +104,39 @@ app.post("/api/auth/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+// ✅ Update User profile
+app.put("/api/auth/user", authMiddelware, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const userId = req.user.id; // Get user ID from auth middleware
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const existingUser = await User.findOne({ email: email });
+    if (existingUser && existingUser._id.toString() !== userId) {
+      return res.status(409).json({ success: false, message: "Email already in use" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.email = email;
+    await user.save();
+
+    const userResponse = await User.findById(userId).select("-password");
+
+    res.json({ success: true, data: { user: userResponse } });
+  } catch (err) {
+    console.error("Update user error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 
 // ✅ Connect MongoDB
 mongoose
