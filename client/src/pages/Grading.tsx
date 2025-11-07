@@ -204,7 +204,7 @@ export default function Grading() {
               className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-lg flex items-center justify-center gap-2 shadow-md hover:opacity-90"
             >
               <Save size={18} />
-              Save (Download JSON)
+              Save
             </button>
           </div>
         </div>
