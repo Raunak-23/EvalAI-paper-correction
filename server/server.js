@@ -7,7 +7,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 // middelware to verufy JWT
-const authMiddelware = (req, res, next) => {
+const authMiddleware = (req, res, next) => {
   const authHeader = req.header('Authorization');
   if (!authHeader) {
     return res.status(401).json({ success: false, message: 'Access denied. No token provided.' });
@@ -106,7 +106,7 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // ✅ Update User profile
-app.put("/api/auth/user", authMiddelware, async (req, res) => {
+app.put("/api/auth/user", authMiddleware, async (req, res) => {
   try {
     const { email } = req.body;
     const userId = req.user.id; // Get user ID from auth middleware
@@ -137,6 +137,17 @@ app.put("/api/auth/user", authMiddelware, async (req, res) => {
   }
 });
 
+// ✅ Serve static files (production only)
+const path = require("path");
+const buildPath = path.join(__dirname, "..", "client", "build");
+console.log('[STATIC] serving from', path.join(__dirname, '../client/build'));
+app.use(express.static(buildPath, { dotfiles: "allow" }));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(buildPath, "index.html"), {}, (err) => {
+    if (err) res.status(500).send(`<pre>STATIC ERR: ${err.message}\nPath: ${buildPath}</pre>`);
+  });
+});
 
 // ✅ Connect MongoDB
 mongoose
