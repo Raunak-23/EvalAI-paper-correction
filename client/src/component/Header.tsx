@@ -20,11 +20,11 @@ const Header: React.FC = () => {
   } = useNotification();
 
   const [notifOpen, setNotifOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [_profileOpen, _setProfileOpen] = useState(false);
 
   // ✅ Profile Data Load from localStorage
   const [profileName, setProfileName] = useState("D");
-  const [profileEmail, setProfileEmail] = useState("");
+  const [_profileEmail, setProfileEmail] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem("profile");
