@@ -51,7 +51,7 @@ export default function Landing({ onGetStarted, isDark, toggleDark }: LandingPro
       setActiveFeature((prev) => (prev + 1) % features.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [features.length]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300 overflow-hidden">

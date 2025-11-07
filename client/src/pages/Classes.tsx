@@ -1,7 +1,7 @@
 // src/pages/Classes.tsx
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Calendar, ClipboardList, CheckSquare } from "lucide-react";
+import { Plus, Calendar, ClipboardList } from "lucide-react";
 import { useGlobal, ClassType, Assignment } from "../context/GlobalContext";
 import { useNotification } from "../context/NotificationContext";
 
