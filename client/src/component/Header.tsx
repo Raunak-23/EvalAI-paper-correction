@@ -36,7 +36,7 @@ const Header: React.FC = () => {
   }, []);
 
   // ✅ Initial Letter
-  const avatarInitial = profileName.charAt(0).toUpperCase();
+  const _avatarInitial = profileName.charAt(0).toUpperCase();
 
   return (
     <header className="w-full bg-white dark:bg-gray-900 shadow-sm flex justify-between items-center px-6 py-3 transition-all relative">
