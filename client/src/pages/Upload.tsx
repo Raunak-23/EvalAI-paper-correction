@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileUp, File, CheckCheck, Loader2 } from "lucide-react";
+import { useGlobal } from "../context/GlobalContext";
 
 /* ----------------------
    ✅ Dropzone Component
@@ -51,13 +52,16 @@ const Dropzone: React.FC<DropzoneProps> = ({
     >
       <div
         className={`p-4 rounded-full mb-4 bg-gradient-to-r 
-        ${title.includes("Answer Key") 
-          ? "from-blue-400 to-purple-500" 
-          : "from-purple-400 to-pink-500"} 
+        ${
+          title.includes("Answer Key")
+            ? "from-blue-400 to-purple-500"
+            : "from-purple-400 to-pink-500"
+        } 
         flex items-center justify-center`}
       >
         <Plus size={28} className="text-white" />
       </div>
+
       <p className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
         {title}
       </p>
@@ -123,6 +127,16 @@ const TabButton: React.FC<TabButtonProps> = ({
 type ClassOption = { value: string; label: string };
 
 const Upload: React.FC = () => {
+  const navigate = useNavigate();
+
+  /* ✅ Fetch classes from GlobalContext */
+  const { classes } = useGlobal();
+
+  const classOptions: ClassOption[] = classes.map((cls) => ({
+    value: cls.id.toString(),
+    label: cls.name,
+  }));
+
   const [mode, setMode] = useState<"bulk" | "single">("bulk");
   const [selectedClass, setSelectedClass] = useState<ClassOption | null>(null);
   const [studentFiles, setStudentFiles] = useState<File[]>([]);
@@ -130,15 +144,6 @@ const Upload: React.FC = () => {
   const [processing, setProcessing] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [isError, setIsError] = useState(false);
-
-  const navigate = useNavigate();
-
-  const classes: ClassOption[] = [
-    { value: "VL2025260101634", label: "VL2025260101634" },
-    { value: "VL2025260101642", label: "VL2025260101642" },
-    { value: "VL2025260101621", label: "VL2025260101621" },
-    { value: "VL2025260101689", label: "VL2025260101689" },
-  ];
 
   const handleStudentFiles = (files: File[]) => {
     setStudentFiles(mode === "single" ? files.slice(0, 1) : files);
@@ -157,7 +162,9 @@ const Upload: React.FC = () => {
   ----------------------- */
   const handleEvaluate = async () => {
     if (!studentFiles.length || !answerKeyFile) {
-      setUploadMessage("Please upload both student paper and answer key files.");
+      setUploadMessage(
+        "Please upload both student paper and answer key files."
+      );
       setIsError(true);
       return;
     }
@@ -239,8 +246,9 @@ const Upload: React.FC = () => {
               <p className="text-gray-600 dark:text-gray-300 mb-2 font-semibold">
                 Select Class
               </p>
+
               <Select
-                options={classes}
+                options={classOptions}
                 value={selectedClass}
                 onChange={setSelectedClass}
                 placeholder="Select Class"
@@ -249,7 +257,7 @@ const Upload: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Side */}
+          {/* Right Panel */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             <Dropzone
               title="Upload Answer Key"
