@@ -1,5 +1,5 @@
 // src/component/Header.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Bell, Moon, Sun, Trash2, CheckCheck } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useNotification } from "../context/NotificationContext";
@@ -26,13 +26,45 @@ const Header: React.FC = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  // Logout Handler
+  // ✅ Refs to detect outside clicks
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        notifRef.current &&
+        !notifRef.current.contains(target) &&
+        profileRef.current &&
+        !profileRef.current.contains(target)
+      ) {
+        setNotifOpen(false);
+        _setProfileOpen(false);
+      } else if (
+        notifRef.current &&
+        !notifRef.current.contains(target) &&
+        notifOpen
+      ) {
+        setNotifOpen(false);
+      } else if (
+        profileRef.current &&
+        !profileRef.current.contains(target) &&
+        _profileOpen
+      ) {
+        _setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [notifOpen, _profileOpen]);
+
   const handleLogout = async () => {
     await logout();
     navigate("/auth");
-  }
+  };
 
-  // ✅ Profile Data Load from localStorage
   const [profileName, setProfileName] = useState("D");
   const [_profileEmail, setProfileEmail] = useState("");
 
@@ -45,12 +77,10 @@ const Header: React.FC = () => {
     }
   }, []);
 
-  // ✅ Initial Letter
   const _avatarInitial = profileName.charAt(0).toUpperCase();
 
   return (
     <header className="w-full bg-white dark:bg-gray-900 shadow-sm flex justify-between items-center px-6 py-3 transition-all relative">
-
       {/* LEFT LOGO */}
       <div className="flex items-center space-x-3">
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold 
@@ -64,21 +94,24 @@ const Header: React.FC = () => {
       </div>
 
       {/* RIGHT SIDE */}
-      <div className="flex items-center space-x-6">
-
+      <div className="flex items-center space-x-4">
         {/* THEME TOGGLE */}
         <button
           onClick={toggleTheme}
-          className="text-purple-600 dark:text-yellow-400 hover:opacity-80 transition-all"
+          className="w-9 h-9 flex items-center justify-center rounded-full 
+          text-purple-600 dark:text-yellow-400 hover:bg-gray-100 dark:hover:bg-gray-800 
+          transition-all"
         >
           {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
 
         {/* NOTIFICATION BELL */}
-        <div className="relative">
+        <div className="relative" ref={notifRef}>
           <button
             onClick={() => setNotifOpen((o) => !o)}
-            className="relative text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 transition"
+            className="w-9 h-9 flex items-center justify-center rounded-full 
+            text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 
+            hover:bg-gray-100 dark:hover:bg-gray-800 transition"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
@@ -88,14 +121,14 @@ const Header: React.FC = () => {
             )}
           </button>
 
-          {/* NOTIFICATION DROPDOWN */}
           {notifOpen && (
             <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 border 
             border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden z-50">
-
               <div className="flex items-center justify-between px-4 py-2 border-b 
               border-gray-200 dark:border-gray-700">
-                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Notifications</p>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  Notifications
+                </p>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={markAllRead}
@@ -116,7 +149,9 @@ const Header: React.FC = () => {
 
               <div className="max-h-80 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 p-4">No notifications</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 p-4">
+                    No notifications
+                  </p>
                 ) : (
                   notifications.map((n) => (
                     <div
@@ -125,8 +160,13 @@ const Header: React.FC = () => {
                       hover:bg-gray-50 dark:hover:bg-gray-700/50 flex justify-between gap-2"
                     >
                       <div>
-                        <p className={`text-sm ${n.read ? "text-gray-600 dark:text-gray-300" :
-                          "text-gray-900 dark:text-white font-semibold"}`}>
+                        <p
+                          className={`text-sm ${
+                            n.read
+                              ? "text-gray-600 dark:text-gray-300"
+                              : "text-gray-900 dark:text-white font-semibold"
+                          }`}
+                        >
                           {n.message}
                         </p>
                         <p className="text-[11px] text-gray-400 dark:text-gray-400 mt-0.5">
@@ -148,10 +188,11 @@ const Header: React.FC = () => {
         </div>
 
         {/* PROFILE AVATAR */}
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button
             onClick={() => _setProfileOpen((o) => !o)}
-            className="w-8 h-8 rounded-full bg-purple-500 text-white font-semibold flex items-center justify-center"
+            className="w-9 h-9 flex items-center justify-center rounded-full 
+            bg-purple-500 text-white font-semibold hover:opacity-90 transition"
           >
             {_avatarInitial}
           </button>
@@ -159,11 +200,15 @@ const Header: React.FC = () => {
           {_profileOpen && (
             <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3">
               <p className="text-sm text-gray-700 dark:text-gray-300">{_profileEmail}</p>
-              <button className="text-xs text-red-500 mt-2 hover:underline" onClick={handleLogout}>Logout</button>
+              <button
+                className="text-xs text-red-500 mt-2 hover:underline"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
             </div>
           )}
         </div>
-
       </div>
     </header>
   );
